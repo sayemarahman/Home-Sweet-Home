@@ -1,0 +1,156 @@
+---
+title: "Stat4355-Project"
+author: "Subre Moktar"
+date: "2023-04-08"
+output: pdf_document
+---
+
+
+```{r}
+library(dplyr)
+library(pairsD3)
+library(ggplot2)
+library(readr)
+getwd()
+setwd("C:/Users/subre/Documents/Python Code/Python Data Folder")
+df <- read.csv("data.csv", sep = "\t", fileEncoding = "UTF-16LE", header = T)
+setwd("C:/Development/R Program/Data Set Saved Here")
+df_2 <- read.csv("Metro_Data.csv", sep = "\t", header = T, fileEncoding = "UTF-16LE")
+
+```
+
+
+```{r}
+#summary(df)
+df2 <- df_2 %>% mutate_at(3:14, parse_number) %>% mutate_at(18:20, parse_number)
+df2 <- na.omit(df2)
+#df2 <- df2 %>% select(df2 , -c(Median.Sale.Price.MOM,Median.Sale.Price.YoY, Homes.Sold.MoM,
+#                               Homes.Sold.YoY,))
+df2$Days.on.Market <- as.numeric(df2$Days.on.Market)
+df2$Days.on.Market.MoM <- as.numeric(df2$Days.on.Market.MoM)
+df2$Days.on.Market.YoY <- as.numeric(df2$Days.on.Market.YoY)
+
+print(summary(df2))
+
+
+
+```
+
+
+```{r}
+library(stringr)
+
+a = str_detect(df2$Region, "TX") 
+b = str_detect(df2$Region, "WA")
+c = str_detect(df2$Region, "NY")
+d = str_detect(df2$Region, "FL")
+e = str_detect(df2$Region, "CA")
+
+df2$Region_State <- ifelse(a == TRUE, "TX", 
+                           ifelse(b == TRUE, "WA", 
+                                  ifelse(c == TRUE, "NY",
+                                         ifelse(d == TRUE, "FL",
+                                                ifelse(e == TRUE, "CA", NA)))))
+unique(df2$Region_State)
+
+
+
+
+ggplot(df2) + geom_point(aes(y = Median.Sale.Price, x = New.Listings, color = Region_State))
+ggplot(df2) + geom_point(aes(y = Median.Sale.Price, x = Homes.Sold, color = Region_State))
+
+
+```
+
+
+```{r}
+ggplot(df2) + geom_point(aes(y = Median.Sale.Price, x = New.Listings, color = Region_State))
+ggplot(df2) + geom_point(aes(y = Median.Sale.Price, x = Homes.Sold, color = Region_State))
+
+library(MASS)
+
+
+ggplot(df2) + geom_boxplot(aes(y = Median.Sale.Price, x = Region_State))
+```
+```{r}
+names(df2)[1] <- "x1" #Region
+names(df2)[2] <- "x2" #Month.of.period.end
+names(df2)[3] <- "y" #median.sale.price
+names(df2)[4] <- "x3" #median.sale.price.mom
+names(df2)[5] <- "x4" #median.sale.price.yoy
+names(df2)[6] <- "x5" #homes.sold
+names(df2)[7] <- "x6" #homes.sold.mom
+names(df2)[8] <- "x7" #homes.sold.yoy
+names(df2)[9] <- "x8" #new.listings
+names(df2)[10] <- "x9" #new.listings.mom
+names(df2)[11] <- "x10" #new.listings.yoy
+names(df2)[12] <- "x11" #inventory
+names(df2)[13] <- "x12" #inventory.mom
+names(df2)[14] <- "x13" #inventory.yoy
+names(df2)[15] <- "x14" #days.on.market
+names(df2)[16] <- "x15" #days.on.market.mom
+names(df2)[17] <- "x16" #days.on.market.yoy
+names(df2)[18] <- "x17" #average.sale.to.list
+names(df2)[19] <- "x18" #average.sale.to.list.mom
+names(df2)[20] <- "x19" #average.sale.to.list.yoy
+
+
+str(df2)
+
+```
+
+
+```{r}
+housing_price <- lm(y ~ x3+x4+x5+x6+x7+x8+x9+x10+x11+x12+x13+x14+x15+x16+x17+x18+x19, data = df2)
+summary(housing_price)
+library(MASS)
+modelSelection <- stepAIC(housing_price, direction = "forward")
+modelSelection$results
+
+library(leaps)
+reg <- regsubsets(y ~ x5+x6+x7+x8+x9+x10+x11+x12+x13+x14+x15+x16+x17+x18+x19,
+                 data = df2, 
+                 nvmax = 17)
+reg_summary <- summary(reg)
+names(reg_summary)
+coef(reg, 7)
+
+#shinypairs(df2[3:20])
+
+```
+
+
+```{r}
+df_new = df2[,c(-4,-5,-7,-8,-10,-11,-13,-14,-16,-17,-19,-20)]
+housing_price_linear <- lm(y ~ x5+x8+x11+x14+x17, data = df_new)
+summary(housing_price_linear)
+#shinypairs(df_new)
+#pairsD3(df_new[,c(4,5,6,7,8,3)], opacity = 0.9, cex = 3, width = 600) 
+pdf("mygraph.pdf", width = 10, height = 10)
+pairs(df_new[,c(4,5,6,7,8,3)], col = 'red', cex = 1 )
+
+```
+
+
+```{r}
+library(car)
+vif(housing_price_linear)
+# X5, and x8 are definitly colinear. therfore, we dont need one of them
+
+```
+```{r}
+housing_price_nocolinear <- lm(y ~ x5+x11+x14+x17, data = df_new)
+vif(housing_price_nocolinear)
+
+```
+
+```{r}
+df2$Region_State<-as.factor(df2$Region_State)
+summary(df2)
+modelSelection <- stepAIC(housing_price_nocolinear, direction = "forward")
+modelSelection$results
+reg <- regsubsets(y ~ x5+x11+x14,
+                 data = df2)
+summary(reg)
+reg$nbest
+```

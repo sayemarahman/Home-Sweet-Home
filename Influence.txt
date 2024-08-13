@@ -1,0 +1,28 @@
+```{r}
+full_Model_WA <- lm(data=df_WA, Median.Sale.Price ~ log(Homes.Sold) + log(Inventory) + log(Days.on.Market) + log(Average.Sale.To.List))
+options(max.print = 25000)
+myInf <- influence.measures(full_Model_WA)
+summary(myInf)
+```
+
+
+
+```{r}
+full_Model_TX <- lm(data=df_TX, sqrt(Median.Sale.Price) ~ log(Homes.Sold) + log(Inventory) + log(Days.on.Market) + log(Average.Sale.To.List))
+myInf <- influence.measures(full_Model_TX)
+summary(myInf)
+```
+
+
+```{r}
+full_Model_CA <- lm(data=df_CA, log(Median.Sale.Price) ~ log(Homes.Sold) + log(Inventory) + log(Days.on.Market) + log(Average.Sale.To.List))
+myInf <- influence.measures(full_Model_CA)
+summary(myInf)
+```
+
+
+```{r}
+full_Model_NY <- lm(data=df_NY, 1/sqrt(Median.Sale.Price) ~ Homes.Sold + Inventory + Days.on.Market + Average.Sale.To.List)
+myInf <- influence.measures(full_Model_NY)
+summary(myInf)
+```

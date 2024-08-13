@@ -1,0 +1,9 @@
+import pandas as pd
+import os
+
+df = pd.read_csv('data.csv', sep = "\t", header = 0, encoding='utf-16-le')
+print(df)
+
+for col in df.columns:
+    print(col)
+    

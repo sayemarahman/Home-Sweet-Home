@@ -1,0 +1,61 @@
+monthly <- read.csv("data.csv", header = TRUE, sep = "\t", fileEncoding = "UTF-16LE")
+head(monthly)
+summary(monthly)
+str(monthly)
+
+library(dplyr)
+library(readr)
+monthly_new <- monthly %>% mutate_at(3:14, parse_number) %>% mutate_at(18:20, parse_number)
+
+monthly_region <- monthly_new[monthly_new$Region != " National", ]
+monthly_nat <- monthly_new[monthly_new$Region == " National", ]
+# actual code
+# Reading the CSV's.
+df <- read.csv("Metro_Data.csv", header = TRUE, sep = "\t", fileEncoding = "UTF-16LE")
+df_2 <- read.csv("Metro_Data.csv", sep = "\t", header = T, fileEncoding = "UTF-16LE", row.names = NULL)
+
+library(stringr)
+
+a = str_detect(df2$Region, "TX") 
+b = str_detect(df2$Region, "WA")
+c = str_detect(df2$Region, "NY")
+d = str_detect(df2$Region, "FL")
+e = str_detect(df2$Region, "CA")
+
+df2$Region_State <- ifelse(a == TRUE, "TX", 
+                           ifelse(b == TRUE, "WA", 
+                                  ifelse(c == TRUE, "NY",
+                                         ifelse(d == TRUE, "FL",
+                                                ifelse(e == TRUE, "CA", NA)))))
+                                                
+library(tidyr)
+separate(data = metro, col = "Region", into = c("City", "State"), sep = "\\,")
+
+names(df2)[1] <- "x1" #Region
+names(df2)[2] <- "x2" #Month.of.period.end
+names(df2)[3] <- "y" #median.sale.price
+names(df2)[4] <- "x3" #median.sale.price.mom
+names(df2)[5] <- "x4" #median.sale.price.yoy
+names(df2)[6] <- "x5" #homes.sold
+names(df2)[7] <- "x6" #homes.sold.mom
+names(df2)[8] <- "x7" #homes.sold.yoy
+names(df2)[9] <- "x8" #new.listings
+names(df2)[10] <- "x9" #new.listings.mom
+names(df2)[11] <- "x10" #new.listings.yoy
+names(df2)[12] <- "x11" #inventory
+names(df2)[13] <- "x12" #inventory.mom
+names(df2)[14] <- "x13" #inventory.yoy
+names(df2)[15] <- "x14" #days.on.market
+names(df2)[16] <- "x15" #days.on.market.mom
+names(df2)[17] <- "x16" #days.on.market.yoy
+names(df2)[18] <- "x17" #average.sale.to.list
+names(df2)[19] <- "x18" #average.sale.to.list.mom
+names(df2)[20] <- "x19" #average.sale.to.list.yoy
+
+library(leaps)
+reg <- regsubsets(y ~ x5+x6+x7+x8+x9+x10+x11+x12+x13+x14+x15+x16+x17+x18+x19,
+                 data = df2, 
+                 nvmax = 17)
+reg_summary <- summary(reg)
+names(reg_summary)
+coef(reg, 7)
